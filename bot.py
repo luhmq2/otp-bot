@@ -12,7 +12,7 @@ from telebot import types
 from requests.auth import HTTPBasicAuth
 from datetime import datetime, date, timedelta  
 
-# 1. Safely load secrets from environment variables
+# 1. Load configuration secrets from your local hidden .env file
 load_dotenv()
 
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -20,8 +20,9 @@ account_sid = os.getenv('TWILIO_ACCOUNT_SID')
 auth_token = os.getenv('TWILIO_AUTH_TOKEN')
 ngrok = os.getenv('NGROK_URL')
 phone_numz = os.getenv('TWILIO_PHONE_NUMBER')
+elevenlabs_key = os.getenv('ELEVENLABS_API_KEY')
 
-# 2. Initialize API Clients
+# 2. Initialize API Clients securely using the environment variables
 client = Client(account_sid, auth_token)
 bot = telebot.TeleBot(bot_token)  
 
@@ -40,7 +41,7 @@ def check_subscription(idkey):
 def generate_ai(iduser, text, page):
     headers = {
         'accept': 'audio/mpeg',
-        'xi-api-key': 'f343277da36e000924585730b1a3f91e', # ElevenLabs key (consider moving this to .env too!)
+        'xi-api-key': elevenlabs_key, 
         'Content-Type': 'application/json',
     }
 
@@ -51,7 +52,7 @@ def generate_ai(iduser, text, page):
             'similarity_boost': 1,
         },
     }
-    botai = requests.post('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', headers=headers, json=json_data)
+    botai = requests.post('https://elevenlabs.io', headers=headers, json=json_data)
     
     os.makedirs(f"./conf/{iduser}", exist_ok=True)
     with open(f"./conf/{iduser}/{page}.mp3", 'wb') as f:
@@ -119,7 +120,7 @@ def extend_subscription(call):
         "📞 Please contact @YOUR_TG_NAME to extend your subscription."
     )
 
-# Cleaned up the broken callback handler syntax at the end
+
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(call):
     if call.data == "subscription_info":
